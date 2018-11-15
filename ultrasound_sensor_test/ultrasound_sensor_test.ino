@@ -12,7 +12,7 @@
  
 int trigPin = 11;    // Trigger
 int echoPin = 12;    // Echo
-long duration, mm, inches, sum;
+long duration, mm, sum;
 int counter = 0;
  
 void setup() {
@@ -39,20 +39,20 @@ void loop() {
   duration = pulseIn(echoPin, HIGH);
  
   // Convert the time into a distance
-  mm = (duration/2) / 2.9;     // Divide by 29.1 or multiply by 0.0343
-  inches = (duration/2) / 74;   // Divide by 74 or multiply by 0.0135
+  mm = (duration/2) / 2.91;     // Divide by 29.1 or multiply by 0.0343
   sum += mm;
   if(counter == 9){
     counter = 0;
     //Serial.print("mm: ");
-    Serial.println(sum/10);
+    Serial.println(sum/10); // THIS IS THE PIXEL VALUE
     //Serial.println();
     sum = 0;
+    //delay(200);
+    // MOVE THE MOTOR HERE!!!!!!
   }
   else {
     counter ++;
   }
   
-  
-  delay(100);
+  delay(20);
 }
