@@ -18,13 +18,13 @@ port = '/dev/cu.usbmodem1421'
 ser = serial.Serial(port)
 
 # Image size
-cols = 50
-rows = 50
+cols = 5
+rows = 5
 
 # Read from serial port until enough data captured
 data = []
 for i in range(rows*cols):
-    data.append( int( ser.readline().strip() ) )
+    data.append( np.uint8( ser.readline().strip() ) )
 
 ser.close() # CLOSE THE SERIAL PORT YA DUMMY
 
