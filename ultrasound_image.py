@@ -22,12 +22,19 @@ ser = serial.Serial(port)
 # MAKE SURE THESE VALUES MATCH UP WITH ARDUINO CODE
 horiz_steps = 6
 vert_steps = 4
-image_array = np.zeros( (vert_steps*2, horiz_steps) )
 
 # Arrays to hold data (will be spatially upside down)
 data_top = np.zeros((vert_steps, horiz_steps))
 data_bottom = np.zeros((vert_steps, horiz_steps))
+image_array = np.zeros( (vert_steps*2, horiz_steps) )
 
+# Do not start until Arduino tells us to
+x = True
+while x:
+    if np.uint8( ser.readline().strip() ) < 0:
+        x = False
+    
+# START.
 # Read from serial port until enough data captured
 for i in range(vert_steps):
     for j in range(horiz_steps):
@@ -54,25 +61,14 @@ data_min = np.min(image_array_final)
 new_data_range = max(np.max(image_array_final) - data_min, 1)
 normalized_image_array = ( (image_array_final - data_min) * (255/new_data_range) ).astype(np.uint8)
 
-'''
-# For ease of use
-normalized_data_array = np.array(
-[[139, 126, 101,  98,  85],
- [ 65,  54,  57,  87,  27],
- [  8,   0,  49, 180, 252],
- [254, 254, 254, 254, 254],
- [254, 254, 254, 254, 254]], dtype=np.uint8)
-'''
-#print("")
-#print(normalized_data_array)
-
+# Make image
 img = im.fromarray(normalized_image_array)
 img.show()
 
+
+
+# s=Save results for later use
 timestamp = time.strftime("%Y%m%d-%H%M%S")
 img.save("saved_images/image-" + timestamp + ".bmp")
-
-
-# save data for later use
 np.save("saved_data/data-" + timestamp, normalized_image_array) 
 # np.load can turn this back into an array for later use
