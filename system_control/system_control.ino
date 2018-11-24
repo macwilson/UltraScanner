@@ -6,17 +6,20 @@ int echoPinBot = 13;
 int trigPinTop = 10;
 int echoPinTop = 11;
 
+// Button pin
+int buttonPin=7;
+
 // Math parameters
 long mmBot, mmTop, sumBot, sumTop;
 int counter = 0;
 int num_to_avg = 5;
 
 // Hardware parameters
-int num_horizontal_steps = 17; //?
-int size_horizontal_step = 10; // motor step size in horizontal direction
-int num_vertical_steps = 17; //?
-int size_small_vertical_step = 50; // motor step size in horizontal direction
-int size_big_vertical_step = 100; // motor step size in horizontal direction
+int num_horizontal_steps = 10; //
+int size_horizontal_step = 38; // motor step size in horizontal direction
+int num_vertical_steps = 3; // includes a big step and little step
+int size_small_vertical_step = 59; // motor step size in horizontal direction
+int size_big_vertical_step = 177; // motor step size in horizontal direction
 int vertical_step_index = -1; //start with small step
 int horizontal_direction = 1; //start forwards
 
@@ -26,21 +29,20 @@ int horizontal_direction = 1; //start forwards
 #include <Adafruit_MotorShield.h>
 
 // Create the motor shield objects with the default I2C address
-Adafruit_MotorShield horizontal_motor = Adafruit_MotorShield(); 
-Adafruit_MotorShield vertical_motor = Adafruit_MotorShield(); 
+Adafruit_MotorShield motor1 = Adafruit_MotorShield(); 
+Adafruit_MotorShield motor2 = Adafruit_MotorShield(); 
 
 // Connect a stepper motor with 200 steps per revolution (1.8 degree)to motor port #1(M1 and M2) #2 (M3 and M4)
 Adafruit_StepperMotor *horizontal_motor = motor1.getStepper(200, 1);
-Adafruit_StepperMotor *vertical_motor = motor1.getStepper(200, 2);
-
+Adafruit_StepperMotor *vertical_motor = motor2.getStepper(200, 2);
 
 void setup() {
   //Serial Port begin
   Serial.begin (9600);
 
   // Create motors with default frequency (1.6KHz) and set rpm
-  horizontal_motor.begin();
-  vertical_motor.begin();
+  motor1.begin();
+  motor2.begin();
   horizontal_motor->setSpeed(100);  // 100 rpm 
   vertical_motor->setSpeed(100);    // 100 rpm 
   
@@ -49,13 +51,17 @@ void setup() {
   pinMode(echoPinBot, INPUT);
   pinMode(trigPinTop, OUTPUT);
   pinMode(echoPinTop, INPUT);
+
+  // Define Button input
+  pinMode(buttonPin, INPUT);
 }
 
 void loop() {
   
   // once button has been pressed, begin one full image
-  int input = int(Serial.read()); //use serial input to impersonate button for now
-  if(input != -1) {   
+  if(digitalRead(buttonPin)==HIGH){
+    Serial.println(-100)
+    digitalWrite(buttonPin, LOW);
     for(int i=0; i<num_vertical_steps; i++) { 
       for(int j=0; j<num_horizontal_steps; j++) {
         
@@ -115,7 +121,7 @@ void read_distances() {
   // Trigger signal
   digitalWrite(trigPinBot, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPinBot, LOW);
+  digitalWrite(trigPinBot, LOW); 
  
   // Read duration til signal, in microseconds
   durationBot = pulseIn(echoPinBot, HIGH);
