@@ -13,18 +13,36 @@ int num_to_avg = 5;
 
 // Hardware parameters
 int num_horizontal_steps = 17; //?
-int size_horizontal_step = 50; //for motor turning ??
+int size_horizontal_step = 10; // motor step size in horizontal direction
 int num_vertical_steps = 17; //?
-int size_vertical_step = 50; //for motor turning
+int size_small_vertical_step = 50; // motor step size in horizontal direction
+int size_big_vertical_step = 100; // motor step size in horizontal direction
 int vertical_step_index = -1; //start with small step
 int horizontal_direction = 1; //start forwards
 
 
 // Step motor libraries
+#include <Wire.h>
+#include <Adafruit_MotorShield.h>
+
+// Create the motor shield objects with the default I2C address
+Adafruit_MotorShield horizontal_motor = Adafruit_MotorShield(); 
+Adafruit_MotorShield vertical_motor = Adafruit_MotorShield(); 
+
+// Connect a stepper motor with 200 steps per revolution (1.8 degree)to motor port #1(M1 and M2) #2 (M3 and M4)
+Adafruit_StepperMotor *horizontal_motor = motor1.getStepper(200, 1);
+Adafruit_StepperMotor *vertical_motor = motor1.getStepper(200, 2);
+
 
 void setup() {
   //Serial Port begin
   Serial.begin (9600);
+
+  // Create motors with default frequency (1.6KHz) and set rpm
+  horizontal_motor.begin();
+  vertical_motor.begin();
+  horizontal_motor->setSpeed(100);  // 100 rpm 
+  vertical_motor->setSpeed(100);    // 100 rpm 
   
   //Define inputs and outputs
   pinMode(trigPinBot, OUTPUT);
@@ -63,7 +81,7 @@ void loop() {
           // Move motor horizontally one step
           moveHorizontally();
 
-          
+         
         }
       }
       
@@ -124,10 +142,12 @@ void read_distances() {
 void moveHorizontally() {
   // size_horizontal_step
   if(horizontal_direction <0) {
-    moveLeft();
+    // Move transducer platform one small step right
+    horizontal_motor->step(size_horizontal_step, BACKWARD, DOUBLE); 
   }
   else {
-    moveRight();
+    // Move transducer platform one small step right
+    horizontal_motor->step(size_horizontal_step, FORWARD, DOUBLE);
   }
   
 }
@@ -138,12 +158,12 @@ void moveVertically() {
   if(vertical_step_index < 0) {
     // Do a small step
     int s = size_vertical_step;
-    doSmallStep();
+    vertical_motor->step(size_small_vertical_step, FORWARD, DOUBLE);
   }
   else {
     // Do a big step!!
     int s = size_vertical_step * 3;
-    doBigStep();
+    vertical_motor->step(size_big_vertical_step, FORWARD, DOUBLE); 
   }
   
 }
@@ -153,25 +173,3 @@ void resetPosition() {
   // Move the horizontal cart back to original position (if not already)
   
 }
-
-void moveRight() {
-  
-}
-
-
-void moveLeft() {
-
-  
-}
-
-
-void doSmallStep() {
-  
-}
-
-
-void doBigStep() {
-  
-}
-
-
