@@ -1,13 +1,13 @@
 // Transducer #1
-int trigPin1 = 12;  
-int echoPin1 = 13;  
+int trigPinBot = 12;  
+int echoPinBot = 13;  
 
 // Transducer #2
-int trigPin2 = 10;
-int echoPin2 = 11;
+int trigPinTop = 10;
+int echoPinTop = 11;
 
 // Math parameters
-long mm1, mm2, sum1, sum2;
+long mmBot, mmTop, sumBot, sumTop;
 int counter = 0;
 int num_to_avg = 5;
 
@@ -27,10 +27,10 @@ void setup() {
   Serial.begin (9600);
   
   //Define inputs and outputs
-  pinMode(trigPin1, OUTPUT);
-  pinMode(echoPin1, INPUT);
-  pinMode(trigPin2, OUTPUT);
-  pinMode(echoPin2, INPUT);
+  pinMode(trigPinBot, OUTPUT);
+  pinMode(echoPinBot, INPUT);
+  pinMode(trigPinTop, OUTPUT);
+  pinMode(echoPinTop, INPUT);
 }
 
 void loop() {
@@ -40,42 +40,47 @@ void loop() {
   if(input != -1) {   
     for(int i=0; i<num_vertical_steps; i++) { 
       for(int j=0; j<num_horizontal_steps; j++) {
+        
         // At each single location, take a pixel value (averaged)
         read_distances();
-        sum1 += mm1;
-        sum2 += mm2;
+        sumBot += mmBot;
+        sumTop += mmTop;
 
+        counter++;
+        
         // Check if pixel value is complete
         if(counter == num_to_avg -1){
+          
           // SEND PIXEL VALUE TO PYTHON
-          Serial.println(sum1/num_to_avg); // THIS IS THE PIXEL VALUE
+          Serial.println(sumBot/num_to_avg); // BOTTOM PIXEL VALUE
+          Serial.println(sumTop/num_to_avg); // TOP PIXEL VALUE
   
           // Reset values
-          sum1 = 0; 
-          sum2 = 0;
+          sumBot = 0; 
+          sumTop = 0;
           counter = 0;
           
           // Move motor horizontally one step
-          //moveHorizontally();
-          horizontal_direction = -1*horizontal_direction;
+          moveHorizontally();
+
+          
         }
-        else {
-          counter ++;
-        }
-      
-        //delay(10);
       }
       
-      // Horizontal line is done.
-      // NOTE: Either swap horizontal movement direction now, 
-      // or reset horizontal position by moving it back.
-      //moveVertically();
-      vertical_step_index = -1 * vertical_step_index; // next step is other size
+      // HORIZONTAL LINE IS DONE.
+
+      // Move vertically
+      moveVertically();
+
+      // Change horiz. direction and vert. step size for next time
+      horizontal_direction = -1*horizontal_direction;
+      vertical_step_index = -1 * vertical_step_index; 
     }
 
-    // All imaging is done.
-    Serial.println("Imaging is done.");
+    // 2D IMAGE IS DONE.
+    // Serial.println("Imaging is done."); // debug
     // Reset vertical position (drop height to bottom?)
+    resetPosition();
   }
 
 }
@@ -83,52 +88,90 @@ void loop() {
 
 
 void read_distances() {  
-  long duration1, duration2;
+  long durationBot, durationTop;
+  // GATHER BOTTOM DATA
   // Low pulse to clean signal
-  digitalWrite(trigPin1, LOW);
+  digitalWrite(trigPinBot, LOW);
   delayMicroseconds(5);
 
   // Trigger signal
-  digitalWrite(trigPin1, HIGH);
+  digitalWrite(trigPinBot, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPin1, LOW);
+  digitalWrite(trigPinBot, LOW);
  
   // Read duration til signal, in microseconds
-  duration1 = pulseIn(echoPin1, HIGH);
+  durationBot = pulseIn(echoPinBot, HIGH);
 
+  // GATHER TOP DATA
   // Low pulse to clean signal
-  digitalWrite(trigPin2, LOW);
+  digitalWrite(trigPinTop, LOW);
   delayMicroseconds(5);
 
   // Trigger signal 
-  digitalWrite(trigPin2, HIGH);
+  digitalWrite(trigPinTop, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPin2, LOW);
+  digitalWrite(trigPinTop, LOW);
 
   // Read duration til signal, in microseconds
-  duration2 = pulseIn(echoPin2, HIGH);
+  durationTop = pulseIn(echoPinTop, HIGH);
  
   // Convert the time into a distance
-  mm1 = (duration1/2) / 2.91; 
-  mm2 = (duration2/2) / 2.91;
+  mmBot = (durationBot/2) / 2.91; 
+  mmTop = (durationTop/2) / 2.91;
 }
 
 
 void moveHorizontally() {
   // size_horizontal_step
-  int d = horizontal_direction;
+  if(horizontal_direction <0) {
+    moveLeft();
+  }
+  else {
+    moveRight();
+  }
   
 }
 
 void moveVertically() {
+  // Move vertical platform up, either 1 step or 3, 
+  // depending on the order required. 
   if(vertical_step_index < 0) {
     // Do a small step
     int s = size_vertical_step;
+    doSmallStep();
   }
   else {
     // Do a big step!!
     int s = size_vertical_step * 3;
+    doBigStep();
   }
   
 }
+
+void resetPosition() {
+  // Drop the vertical platform back to the bottom
+  // Move the horizontal cart back to original position (if not already)
+  
+}
+
+void moveRight() {
+  
+}
+
+
+void moveLeft() {
+
+  
+}
+
+
+void doSmallStep() {
+  
+}
+
+
+void doBigStep() {
+  
+}
+
 

@@ -22,11 +22,14 @@ cols = 5
 rows = 5
 
 # Read from serial port until enough data captured
-data = []
+dataTop = []
+dataBottom = []
 for i in range(rows*cols):
-    data.append( np.uint8( ser.readline().strip() ) )
+    valBottom, valTop = (np.uint8( ser.readline().strip() )).split(',')
+    dataBottom.append(valBottom)
+    dataTop.append(valTop)
 
-ser.close() # CLOSE THE SERIAL PORT YA DUMMY
+ser.close() # CLOSE THE SERIAL PORT YA DUMMY 
 
 # Convert data to 2D array
 data_array = np.array(data)
