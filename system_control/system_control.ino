@@ -11,13 +11,12 @@ int buttonPin=7;
 
 // Math parameters
 long mmBot, mmTop, sumBot, sumTop;
-int counter = 0;
 int num_to_avg = 5;
 
 // Hardware parameters
 int num_horizontal_steps = 10; //
-int size_horizontal_step = 38; // motor step size in horizontal direction
-int num_vertical_steps = 3; // includes a big step and little step
+int size_horizontal_step = 37; // motor step size in horizontal direction
+int num_vertical_steps = 7; // includes a big step and little step
 int size_small_vertical_step = 59; // motor step size in horizontal direction
 int size_big_vertical_step = 177; // motor step size in horizontal direction
 int vertical_step_index = -1; //start with small step
@@ -60,35 +59,26 @@ void loop() {
   
   // once button has been pressed, begin one full image
   if(digitalRead(buttonPin)==HIGH){
-    Serial.println(-100)
+    Serial.println(-100);
     digitalWrite(buttonPin, LOW);
     for(int i=0; i<num_vertical_steps; i++) { 
       for(int j=0; j<num_horizontal_steps; j++) {
-        
-        // At each single location, take a pixel value (averaged)
-        read_distances();
-        sumBot += mmBot;
-        sumTop += mmTop;
+        for(int k=0; k<num_to_avg; k++){
+          // At each single location, take a pixel value (averaged)
+          read_distances();
+          sumBot += mmBot;
+          sumTop += mmTop;
+        }   
+        // SEND PIXEL VALUE TO PYTHON
+        Serial.println(sumBot/num_to_avg); // BOTTOM PIXEL VALUE
+        Serial.println(sumTop/num_to_avg); // TOP PIXEL VALUE
 
-        counter++;
+        // Reset values
+        sumBot = 0; 
+        sumTop = 0;
         
-        // Check if pixel value is complete
-        if(counter == num_to_avg -1){
-          
-          // SEND PIXEL VALUE TO PYTHON
-          Serial.println(sumBot/num_to_avg); // BOTTOM PIXEL VALUE
-          Serial.println(sumTop/num_to_avg); // TOP PIXEL VALUE
-  
-          // Reset values
-          sumBot = 0; 
-          sumTop = 0;
-          counter = 0;
-          
-          // Move motor horizontally one step
-          moveHorizontally();
-
-         
-        }
+        // Move motor horizontally one step
+        moveHorizontally();
       }
       
       // HORIZONTAL LINE IS DONE.
@@ -155,7 +145,6 @@ void moveHorizontally() {
     // Move transducer platform one small step right
     horizontal_motor->step(size_horizontal_step, FORWARD, DOUBLE);
   }
-  
 }
 
 void moveVertically() {
@@ -163,12 +152,10 @@ void moveVertically() {
   // depending on the order required. 
   if(vertical_step_index < 0) {
     // Do a small step
-    int s = size_vertical_step;
     vertical_motor->step(size_small_vertical_step, FORWARD, DOUBLE);
   }
   else {
     // Do a big step!!
-    int s = size_vertical_step * 3;
     vertical_motor->step(size_big_vertical_step, FORWARD, DOUBLE); 
   }
   
