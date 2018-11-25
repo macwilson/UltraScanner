@@ -21,7 +21,7 @@ ser = serial.Serial(port)
 # Image size
 # MAKE SURE THESE VALUES MATCH UP WITH ARDUINO CODE
 horiz_steps = 10
-vert_steps = 6
+vert_steps = 7
 
 # Arrays to hold data (will be spatially upside down)
 data_top = np.zeros((vert_steps, horiz_steps))
@@ -31,14 +31,16 @@ image_array = np.zeros( (vert_steps*2, horiz_steps) )
 while True:
         
     # Do not start until Arduino tells us to
-    if np.uint( ser.readline().strip() ) <0:
+    if np.uint8( ser.readline().strip() ) == np.uint8(99999):
         
         # START.
         # Read from serial port until enough data captured
         for i in range(vert_steps):
             for j in range(horiz_steps):
                 data_bottom[i,j] = np.uint8( ser.readline().strip() )
+                print(data_bottom[i,j])
                 data_top[i,j] = np.uint8( ser.readline().strip() )
+                print(data_top[i,j])
         
         
         # Combine two transducer data arrays into one image_array

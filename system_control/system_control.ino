@@ -16,7 +16,7 @@ int num_to_avg = 5;
 // Hardware parameters
 int num_horizontal_steps = 10; //
 int size_horizontal_step = 37; // motor step size in horizontal direction
-int num_vertical_steps = 7; // includes a big step and little step
+int num_vertical_steps = 8; // includes both big and little steps
 int size_small_vertical_step = 59; // motor step size in horizontal direction
 int size_big_vertical_step = 177; // motor step size in horizontal direction
 int vertical_step_index = -1; //start with small step
@@ -59,11 +59,11 @@ void loop() {
   
   // once button has been pressed, begin one full image
   if(digitalRead(buttonPin)==HIGH){
-    Serial.println(-100);
+    Serial.println(99999);
     digitalWrite(buttonPin, LOW);
     for(int i=0; i<num_vertical_steps; i++) { 
-      for(int j=0; j<num_horizontal_steps; j++) {
-        for(int k=0; k<num_to_avg; k++){
+      for(int j=0; j<num_horizontal_steps; j++) { // ROW LOOP
+        for(int k=0; k<num_to_avg; k++){ // AVERAGING LOOP
           // At each single location, take a pixel value (averaged)
           read_distances();
           sumBot += mmBot;
@@ -79,12 +79,15 @@ void loop() {
         
         // Move motor horizontally one step
         moveHorizontally();
+        delay(200);
       }
       
       // HORIZONTAL LINE IS DONE.
 
       // Move vertically
-      moveVertically();
+      if(i < num_vertical_steps - 1) {
+        moveVertically(); 
+      }
 
       // Change horiz. direction and vert. step size for next time
       horizontal_direction = -1*horizontal_direction;
@@ -152,11 +155,11 @@ void moveVertically() {
   // depending on the order required. 
   if(vertical_step_index < 0) {
     // Do a small step
-    vertical_motor->step(size_small_vertical_step, FORWARD, DOUBLE);
+    vertical_motor->step(size_small_vertical_step, BACKWARD, DOUBLE);
   }
   else {
     // Do a big step!!
-    vertical_motor->step(size_big_vertical_step, FORWARD, DOUBLE); 
+    vertical_motor->step(size_big_vertical_step, BACKWARD, DOUBLE); 
   }
   
 }
@@ -164,5 +167,6 @@ void moveVertically() {
 void resetPosition() {
   // Drop the vertical platform back to the bottom
   // Move the horizontal cart back to original position (if not already)
-  
+  int total_vertical_size = (num_vertical_steps/2 -1) * size_big_vertical_step + (num_vertical_steps/2) * size_small_vertical_step;
+  vertical_motor->step(total_vertical_size, FORWARD, DOUBLE); 
 }
