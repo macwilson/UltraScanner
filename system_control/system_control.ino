@@ -14,11 +14,11 @@ long mmBot, mmTop, sumBot, sumTop;
 int num_to_avg = 5;
 
 // Hardware parameters
-int num_horizontal_steps = 10; //
-int size_horizontal_step = 37; // motor step size in horizontal direction
-int num_vertical_steps = 8; // includes both big and little steps
-int size_small_vertical_step = 59; // motor step size in horizontal direction
-int size_big_vertical_step = 177; // motor step size in horizontal direction
+int num_horizontal_steps = 15; //
+int size_horizontal_step = 25; // motor step size in horizontal direction
+int num_vertical_steps = 12; // includes both big and little steps
+int size_small_vertical_step = 39; // motor step size in horizontal direction
+int size_big_vertical_step = 118; // motor step size in horizontal direction
 int vertical_step_index = -1; //start with small step
 int horizontal_direction = 1; //start forwards
 
@@ -73,6 +73,7 @@ void loop() {
     // Begin imaging
     for(int i=0; i<num_vertical_steps; i++) { 
       for(int j=0; j<num_horizontal_steps; j++) { // ROW LOOP
+        delay(500);
         for(int k=0; k<num_to_avg; k++){ // AVERAGING LOOP
           // At each single location, take a pixel value (averaged)
           read_distances();
@@ -89,7 +90,6 @@ void loop() {
         
         // Move motor horizontally one step
         moveHorizontally();
-        delay(200);
       }
       
       // HORIZONTAL LINE IS DONE.
@@ -97,6 +97,7 @@ void loop() {
       // Move vertically
       if(i < num_vertical_steps - 1) {
         moveVertically(); 
+        delay(300);
       }
 
       // Change horiz. direction and vert. step size for next time

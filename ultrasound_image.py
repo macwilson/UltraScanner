@@ -17,27 +17,54 @@ import random
 
 
 def normalize_array(arr):
-     pixel_max = 255
-     data_min = np.min(arr)
-     new_data_range = max(np.max(arr) - data_min, 1)
-     new_arr = (arr - data_min) * (pixel_max/new_data_range)
-     return (pixel_max-new_arr).astype(np.uint8)
+    '''
+        Old way of turning distance data into pixel values. 
+        
+        This function takes the range of the data captured and adjusts the
+        data so that it has a new range of 255, i.e. 8-bit pixel values.
+        Larger distances correspond to lower pixell values (less intensity
+        indicates further away).
+        Returns array with datatype of unsigned integer, 8-bit (max 265).
+    '''
+    pixel_max = 255
+    data_min = np.min(arr)
+    new_data_range = max(np.max(arr) - data_min, 1)
+    new_arr = (arr - data_min) * (pixel_max/new_data_range)
+    return (pixel_max-new_arr).astype(np.uint8)
 
 
 def bin_pixels(arr):
+    '''
+        This function is the preferred method of turning distance data
+        into pixel values. 
+        
+        This function uses the physical usable imaging range (which for ease 
+        of use is set to 255mm) and maps all distances to 0-255 within that 
+        range. Each pixel value corresponds to a distance change of 1mm.
+        Everything below the lower limit will be set to 255 intensity, and 
+        everything above the upper limit will be set to 0 intensity. 
+        Returns array with datatype unsigned integer, 8-bit
+    '''
     assert(type(arr) == np.ndarray)
-    min_dist = 100 # in mm
-    #max_dist = 300
+    min_dist = 150 # in mm
+    #max_dist = 405
     pixel_min = 0
     pixel_max = 255
     
     result_arr = arr.astype(int) - min_dist
     result_arr[result_arr < pixel_min] = pixel_min
     result_arr[result_arr > pixel_max] = pixel_max
-    return (pixel_max - result_arr).astype(np.uint8)
+    return (result_arr).astype(np.uint8)
 
 
 def build_image_array(bottom, top, h, v):
+    '''
+        This function takes data that has been separated into data from the
+        top and bottom transducers and combines them into one big 2D image 
+        array. This requires inherent knowledge of the motion pattern of the
+        system.
+        Returns 2D array with data type int, as designated in bottom and top.
+    '''
     # Combine two transducer data arrays into one image_array
     # Keep in mind the data arrays are upside down from how we want the image
     im_arr = np.zeros( (v*2, h) )
@@ -71,8 +98,7 @@ def load_image_data(path, horiz_steps=10):
 
 
 def load_raw_data(path, h=10, v=8):
-    arr = np.genfromtxt(path, delimiter=",")
-    arr = arr[1:]
+    arr = np.genfromtxt(path, delimiter=",", usecols=3, skip_header=1)
     bot = arr[0::2]
     top = arr[1::2]
     
@@ -118,6 +144,12 @@ def display_random_binned_and_norm():
     get_image(x_norm)
     get_image(x_binned)
     
+    
+def display_image_from_data():
+    x = load_raw_data("Image_Testing.csv")
+    x_bin = bin_pixels(x)
+    get_image(x_bin)
+    
 
 
         
@@ -128,8 +160,8 @@ if __name__ == '__main__':
     
     # Image size
     # MAKE SURE THESE VALUES MATCH UP WITH ARDUINO CODE
-    horiz_steps = 10
-    vert_steps = 8
+    horiz_steps = 15
+    vert_steps = 12
     
     # Arrays to hold data (will be spatially upside down)
     data_top = np.zeros((vert_steps, horiz_steps))
