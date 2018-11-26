@@ -61,6 +61,16 @@ void loop() {
   if(digitalRead(buttonPin)==HIGH){
     Serial.println(99999);
     digitalWrite(buttonPin, LOW);
+    
+    // Initial distance calibration
+    for(int i=0; i<300; i++){
+      read_distances();
+    }
+    // Reset values
+    sumBot = 0; 
+    sumTop = 0;
+
+    // Begin imaging
     for(int i=0; i<num_vertical_steps; i++) { 
       for(int j=0; j<num_horizontal_steps; j++) { // ROW LOOP
         for(int k=0; k<num_to_avg; k++){ // AVERAGING LOOP
