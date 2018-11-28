@@ -46,6 +46,7 @@ def bin_pixels(arr):
         Returns array with datatype unsigned integer, 8-bit
     '''
     assert(type(arr) == np.ndarray)
+    # arr[arr < 150] = 400 # THRESHOLDING FOR THE BACKGROUND THAT IS MISSED
     min_dist = 150 # in mm
     #max_dist = 405
     pixel_min = 0
@@ -54,7 +55,7 @@ def bin_pixels(arr):
     result_arr = arr.astype(int) - min_dist
     result_arr[result_arr < pixel_min] = pixel_min
     result_arr[result_arr > pixel_max] = pixel_max
-    return (result_arr).astype(np.uint8)
+    return (255-result_arr).astype(np.uint8)
 
 
 def build_image_array(bottom, top, h, v):
@@ -184,11 +185,11 @@ if __name__ == '__main__':
             
             # Combine data into image array
             image_array = build_image_array(data_bottom, data_top, horiz_steps, vert_steps)
-            np.save("saved_data/raw-data1", image_array) 
+            np.save("saved_data/raw-data2", image_array) 
             
             # Normalize image array to pixel values
-            normalized_image_array = bin_pixels(image_array)
+            bin_image_array = bin_pixels(image_array)
     
             # Make image
-            get_image(normalized_image_array)
+            get_image(bin_image_array)
             
