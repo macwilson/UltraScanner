@@ -12,7 +12,6 @@ import serial
 import numpy as np
 import PIL.Image as im
 import time 
-import random
 
 
 
@@ -46,7 +45,7 @@ def bin_pixels(arr):
         Returns array with datatype unsigned integer, 8-bit
     '''
     assert(type(arr) == np.ndarray)
-    arr[arr < 150] = 500 # THRESHOLDING FOR THE BACKGROUND THAT IS MISSED
+    arr[arr < 120] = 500 # THRESHOLDING FOR THE BACKGROUND THAT IS MISSED
     min_dist = 130 # in mm
     #max_dist = 385
     pixel_min = 0
@@ -69,13 +68,38 @@ def build_image_array(bottom, top, h, v):
     # Combine two transducer data arrays into one image_array
     # Keep in mind the data arrays are upside down from how we want the image
     im_arr = np.zeros( (v*2, h) )
-    for i in range(int(v/2)):
-        im_arr[i*4] = bottom[i*2]
-        x = bottom[i*2 + 1]
-        im_arr[i*4 + 1] = x[::-1] # This row went backwards
-        im_arr[i*4 + 2] = top[i*2]
-        y = top[i*2 + 1]
-        im_arr[i*4 + 3] = y[::-1] # This row went backwards
+    vals = [0,1,2, 3]
+    for i in vals:
+        if i ==1 or i==3:
+            a = bottom[i*3]
+            im_arr[i*6] = a[::-1]
+            b = bottom[i*3 + 1]
+            im_arr[i*6 + 1] = b # This row went backwards
+            c = bottom[i*3 + 2]
+            im_arr[i*6 + 2] = c[::-1]
+            
+            x = top[i*3]
+            im_arr[i*6 + 3] = x
+            y = top[i*3 + 1]
+            im_arr[i*6 + 4] = y[::-1] # This row went backwards
+            z = top[i*3 + 2]
+            im_arr[i*6 + 5] = z
+            
+        else:
+            a = bottom[i*3]
+            im_arr[i*6] = a
+            b = bottom[i*3 + 1]
+            im_arr[i*6 + 1] = b[::-1] # This row went backwards
+            c = bottom[i*3 + 2]
+            im_arr[i*6 + 2] = c
+            
+            x = top[i*3]
+            im_arr[i*6 + 3] = x
+            y = top[i*3 + 1]
+            im_arr[i*6 + 4] = y[::-1] # This row went backwards
+            z = top[i*3 + 2]
+            im_arr[i*6 + 5] = z
+        
         
     return im_arr[::-1]
 
@@ -98,7 +122,7 @@ def load_image_data(path, horiz_steps=10):
     return arr.reshape(int(arr.size / horiz_steps), horiz_steps )
 
 
-def load_raw_data(path, h=10, v=8, col=1):
+def load_raw_data(path, h=15, v=12, col=4):
     arr = np.genfromtxt(path, delimiter=",", usecols=col, skip_header=1)
     bot = arr[0::2]
     bot = bot[~np.isnan(bot)]
@@ -130,7 +154,7 @@ if __name__ == '__main__':
     # Image size
     # MAKE SURE THESE VALUES MATCH UP WITH ARDUINO CODE
     horiz_steps = 15
-    vert_steps = 12
+    vert_steps = 9 # 2 big, each with 3 small inside it, then finish with 3 small
     
     # Arrays to hold data (will be spatially upside down)
     data_top = np.zeros((vert_steps, horiz_steps))
