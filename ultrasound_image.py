@@ -46,9 +46,9 @@ def bin_pixels(arr):
         Returns array with datatype unsigned integer, 8-bit
     '''
     assert(type(arr) == np.ndarray)
-    # arr[arr < 150] = 400 # THRESHOLDING FOR THE BACKGROUND THAT IS MISSED
-    min_dist = 150 # in mm
-    #max_dist = 405
+    arr[arr < 150] = 500 # THRESHOLDING FOR THE BACKGROUND THAT IS MISSED
+    min_dist = 130 # in mm
+    #max_dist = 385
     pixel_min = 0
     pixel_max = 255
     
@@ -80,17 +80,17 @@ def build_image_array(bottom, top, h, v):
     return im_arr[::-1]
 
 
-def get_image(arr):
+def show_image(arr):
     # This also saves the data and image
     img = im.fromarray(arr)
     img.show()
     
-    # Save results for later use
+    
+def save_image(arr):
+    img = im.fromarray(arr)
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     img.save("saved_images/image-" + timestamp + ".bmp")
     np.save("saved_data/data-" + timestamp, arr) 
-    # np.load can turn this back into an array for later use
-    
     
 def load_image_data(path, horiz_steps=10):
     # Normalized numpy files
@@ -98,60 +98,28 @@ def load_image_data(path, horiz_steps=10):
     return arr.reshape(int(arr.size / horiz_steps), horiz_steps )
 
 
-def load_raw_data(path, h=10, v=8):
-    arr = np.genfromtxt(path, delimiter=",", usecols=3, skip_header=1)
+def load_raw_data(path, h=10, v=8, col=1):
+    arr = np.genfromtxt(path, delimiter=",", usecols=col, skip_header=1)
     bot = arr[0::2]
-    top = arr[1::2]
+    bot = bot[~np.isnan(bot)]
+    top = arr[1::2]   
+    top = top[~np.isnan(top)]
     
     return build_image_array(bot.reshape(v,h), top.reshape(v,h), h, v)
 
 
-def load_raw_data_horizontal_testing(path, horiz_steps=10):
-    arr = np.genfromtxt (path, delimiter=",")
-    arr = arr[1:]
+def load_raw_data_horizontal_testing(path, col=1):
+    arr = np.genfromtxt (path, delimiter=",", usecols=col, skip_header=1)
+    bot = arr[0::2]
+    bot = bot[~np.isnan(bot)]
+    top = arr[1::2]   
+    top = top[~np.isnan(top)]
     
-    # The data has 5 values for each transducer at each location, bottom first 
-    # then top. The data contains two passes, right then left.
-    right = arr[0:20]
-    left = arr[20:40]
-    left = left[::-1]
+    im_arr = np.zeros((2, len(bot)))
+    im_arr[0] = top
+    im_arr[1] = bot
     
-    im_arr = np.zeros((4, horiz_steps))
-    
-    for i in range(len(im_arr[0])):
-        im_arr[0,i] = right[i*2] #bottom transducer
-        im_arr[1,i] = right[i*2 + 1] #top transducer
-        im_arr[2,i] = left[i*2]
-        im_arr[3,i] = left[i*2 + 1]
-
-    return im_arr.astype(np.uint8)
-
-
-def gen_random_im_array(x=10, y=8):
-    high_lim = 500
-    low_lim = 5
-    arr = np.zeros((y*2, x))
-    for col in range(x):
-        for row in range(y*2):
-            arr[row, col] = random.randint(low_lim, high_lim)
-
-    return arr.astype(np.uint8)
-
-
-def display_random_binned_and_norm():
-    x = gen_random_im_array()
-    x_norm = normalize_array(x)
-    x_binned = bin_pixels(x)
-    get_image(x_norm)
-    get_image(x_binned)
-    
-    
-def display_image_from_data():
-    x = load_raw_data("Image_Testing.csv")
-    x_bin = bin_pixels(x)
-    get_image(x_bin)
-    
-
+    return im_arr
 
         
 if __name__ == '__main__':
@@ -191,5 +159,6 @@ if __name__ == '__main__':
             bin_image_array = bin_pixels(image_array)
     
             # Make image
-            get_image(bin_image_array)
+            show_image(bin_image_array)
+            save_image(bin_image_array)
             

@@ -1,10 +1,10 @@
 // Transducer 
-int trigPin = 12;  
-int echoPin = 13;  
+int trigPin = 10;  
+int echoPin = 11;  
 
 long duration, mm, sum;
 int counter = 0;
-int num_to_avg = 5;
+int num_to_avg = 1;
  
 void setup() {
   //Serial Port begin
